@@ -1,40 +1,68 @@
-import React, { useContext, useEffect, useState } from "react";
+import React, { useContext, useState } from "react";
 import { useForm } from "react-hook-form";
+import { toast } from "react-hot-toast";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import { AuthContext } from "../../Context/AuthProvider/AuthProvider";
 
-const Login = () => {
+const Signup = () => {
+  const [signupError, setSignUpError] = useState(" ");
+  const location = useLocation();
+  const navigate = useNavigate();
+  const from = location.state?.from?.pathname || "/";
+
   const {
     register,
     handleSubmit,
     formState: { errors },
   } = useForm();
-  // const [data, setData] = useState(" ");
-  const { signIn } = useContext(AuthContext);
-  const [loginError, setLoginError] = useState(" ");
-  const location = useLocation();
-  const navigate = useNavigate();
 
-  const from = location.state?.from?.pathname || "/";
-  const handleLogin = (data) => {
-    setLoginError(" ");
-    signIn(data.email, data.password)
+  const { createUser, updateUser } = useContext(AuthContext);
+  const handleSignUp = (data) => {
+    console.log(data);
+    setSignUpError(" ");
+    createUser(data.email, data.password)
       .then((result) => {
         const user = result.user;
         console.log(user);
         navigate(from, { replace: true });
+        toast("signUp successfully ok");
+        const userInfo = {
+          displayName: data.name,
+        };
+        updateUser(userInfo)
+          .then(() => {})
+          .catch((err) => console.log(err));
       })
       .catch((error) => {
-        console.log(error.message);
-        setLoginError(error.message);
+        console.log(error);
+        setSignUpError(error.message);
       });
+    console.log(data);
   };
   return (
     <div className="h-[800px] flex justify-center items-center">
       <div className="e-96 p-6">
-        <h1 className="text-4xl  text-center"> login</h1>
+        <h1 className="text-4xl  text-center"> Sign Up </h1>
 
-        <form onSubmit={handleSubmit(handleLogin)}>
+        <form onSubmit={handleSubmit(handleSignUp)}>
+          {/* <form onSubmit={handleSubmit(handleLogin)}> */}
+
+          {/* //,,,,,,,,,,,,,,,,,name.........,,,,,,,,,,,, */}
+          <div className="form-control w-full max-w-xs">
+            <label className="label">
+              <span className="label-text text-1xl text-primary font-bold">
+                Your Name
+              </span>
+            </label>
+            <input
+              name="name"
+              type="text"
+              {...register("name", { required: "Name  is required" })}
+              placeholder="Your name"
+              className="input input-bordered w-full max-w-xs"
+            />
+          </div>
+          {/* //,,,,,,,,,,,,,,,,,Email,,,,,,,,,,,,,,,,,,,,,,,,,,,,, */}
           <div className="form-control w-full max-w-xs">
             <label className="label">
               <span className="label-text text-1xl text-primary font-bold">
@@ -68,6 +96,11 @@ const Login = () => {
                   value: 6,
                   message: "password must be 6 characters or longer",
                 },
+                pattern: {
+                  value: /(?=.*[A-Z])(?=.*[!@#$&*])(?=.*[0-9])/,
+                  message:
+                    "Password must have uppercase, number and special characters",
+                },
               })}
               placeholder="First name"
               className="input input-bordered w-full max-w-xs"
@@ -77,46 +110,32 @@ const Login = () => {
                 {errors.password?.message}
               </p>
             )}
-
-            <label className="label">
-              <span className="label-text text-rad font-bold">
-                forgat Password
-              </span>
-            </label>
           </div>
+          {signupError && <p className="text-red-600">{signupError}</p>}
 
           <input
-            className="btn btn-accent w-full "
-            value="login"
+            className="btn btn-accent w-full  mt-4 "
+            value="Sign Up"
             type="submit"
           />
-          <div>
-            {loginError && (
-              <p className="text-red-600 font-bold">{loginError}</p>
-            )}
-          </div>
           <p className="gap-1">
-            create a new account
-            <Link className="text-primary" to="/signup">
-              SignUp new account
+            Already have a account
+            <Link className="text-primary" to="/login">
+              please Login
             </Link>
           </p>
           <div className="divider">OR</div>
 
           {/* <div className="flex flex-col w-full border-opacity-50">
-  <div className="grid h-20 card bg-base-300 rounded-box place-items-center">content</div>
-  
-  <div className="grid h-20 card bg-base-300 rounded-box place-items-center">content</div>
-</div> */}
+<div className="grid h-20 card bg-base-300 rounded-box place-items-center">content</div>
 
+<div className="grid h-20 card bg-base-300 rounded-box place-items-center">content</div>
+</div> */}
           <button className="btn bnt-outline w-full">Google Login</button>
-          <div>
-            {loginError && <p className="text-red">{loginError}loginError</p>}
-          </div>
         </form>
       </div>
     </div>
   );
 };
 
-export default Login;
+export default Signup;
