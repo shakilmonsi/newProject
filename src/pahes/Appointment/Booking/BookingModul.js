@@ -1,9 +1,14 @@
-import React from "react";
+import React, { useContext } from "react";
 import { format } from "date-fns";
+import { AuthContext } from "../../../Context/AuthProvider/AuthProvider";
+import { toast } from "react-hot-toast";
 
-const BookingModul = ({ treatment, selectedDate, setTreatment }) => {
-  const { name, slots } = treatment;
+const BookingModul = ({ treatment, setTreatment, selectedDate, refetch }) => {
+  const { user } = useContext(AuthContext);
+
+  const { name: treatmentName, slots } = treatment;
   const date = format(selectedDate, "PP");
+
   const handleBooking = (event) => {
     event.preventDefault();
     const form = event.target;
@@ -11,17 +16,39 @@ const BookingModul = ({ treatment, selectedDate, setTreatment }) => {
     const name = form.name.value;
     const email = form.email.value;
     const phone = form.phone.value;
+    // [3, 4, 5].map((value, i) => console.log(value))
     const booking = {
       appointmentDate: date,
-      treatment: name,
+      treatment: treatmentName,
       patient: name,
       slot,
       email,
       phone,
     };
-    setTreatment(null);
-    console.log(booking);
+
+    // TODO: send data to the server
+    // and once data is saved then close the modal
+    // and display success toast
+    fetch("http://localhost:5000/bookings", {
+      method: "POST",
+      headers: {
+        "content-type": "application/json",
+      },
+      body: JSON.stringify(booking),
+    })
+      .then((res) => res.json())
+      .then((data) => {
+        console.log(data);
+        if (data.acknowledged) {
+          setTreatment(null);
+          toast.success("Booking confirmed");
+          refetch();
+        } else {
+          toast.error(data.message);
+        }
+      });
   };
+
   return (
     <>
       <input type="checkbox" id="booking-modal" className="modal-toggle" />
@@ -33,16 +60,18 @@ const BookingModul = ({ treatment, selectedDate, setTreatment }) => {
           >
             ✕
           </label>
-          <h3 className="text-lg font-bold">{name}</h3>
-          <form onSubmit={handleBooking} className="grid grid-cols-1 gap-6">
+          <h3 className="text-lg font-bold">{treatmentName}</h3>
+          <form
+            onSubmit={handleBooking}
+            className="grid grid-cols-1 gap-3 mt-10"
+          >
             <input
-              name="slot"
               type="text"
-              placeholder="Type here"
+              disabled
               value={date}
-              className="input input-bordered input-primary w-full "
+              className="input w-full input-bordered "
             />
-            <select className="select select-bordered w-full ">
+            <select name="slot" className="select select-bordered w-full">
               {slots.map((slot, i) => (
                 <option value={slot} key={i}>
                   {slot}
@@ -52,26 +81,30 @@ const BookingModul = ({ treatment, selectedDate, setTreatment }) => {
             <input
               name="name"
               type="text"
-              placeholder="YOur name"
-              className="input input-bordered input-primary w-full "
+              defaultValue={user?.displayName}
+              disabled
+              placeholder="Your Name"
+              className="input w-full input-bordered"
             />
             <input
               name="email"
               type="email"
-              placeholder="Your email"
-              className="input input-bordered input-primary w-full "
+              defaultValue={user?.email}
+              disabled
+              placeholder="Email Address"
+              className="input w-full input-bordered"
             />
             <input
               name="phone"
               type="text"
-              placeholder="Your Phone"
-              className="input input-bordered input-primary w-full "
+              placeholder="Phone Number"
+              className="input w-full input-bordered"
             />
-
+            <br />
             <input
-              className="btn  btn-accent w-full "
+              className="btn btn-accent w-full"
               type="submit"
-              value="submit"
+              value="Submit"
             />
           </form>
         </div>

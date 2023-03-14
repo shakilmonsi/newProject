@@ -5,6 +5,8 @@ import About from "../../Shared/about/About";
 import Dashboard from "../../Shared/Dashboard/Dashbord";
 import Login from "../../Shared/Login/Login";
 import Signup from "../../Shared/Signup/Signup";
+import DashboardLyuot from "../Dasgbord/DashboardLyuot";
+import MyAppointment from "../Dasgbord/MyAppoiantment/MyAppoiantment";
 import Main from "../Main";
 import PrivateRoute from "./PrivateRoute/PrivateRoute";
 
@@ -37,10 +39,16 @@ const router = createBrowserRouter([
         path: "/dashboard",
         element: (
           <PrivateRoute>
-            {" "}
-            <Dashboard></Dashboard>
+            <DashboardLyuot></DashboardLyuot>
           </PrivateRoute>
         ),
+        children: [
+          {
+            path: "/dashboard",
+
+            element: <MyAppointment></MyAppointment>,
+          },
+        ],
       },
     ],
   },
